@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Advisor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    header {
+      background-color: #003366;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    select {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0.2rem;
+      flex-grow: 1;
+    }
+    .guide {
+      margin-top: 2rem;
+    }
+    .guide h2 {
+      background-color: #003366;
+      color: white;
+      padding: 0.5rem;
+    }
+    .guide section {
+      padding: 1rem 0;
+      border-bottom: 1px solid #ccc;
+    }
+    .guide strong {
+      display: block;
+      margin-top: 0.5rem;
+    }
+    .group-toggle {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    li {
+      margin-bottom: 0.6em;
+    }
+    @media (max-width: 600px) {
+      button {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+      }
+      .guide {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Travel Advisor</h1>
+    <p>Select a city to view your travel guide.</p>
+  </header>
+  <main>
+    <label for="cityPicker">Choose a city:</label>
+    <select id="cityPicker">
+      <option value="">--Select a City--</option>
+      <option value="seoul">Seoul</option>
+      <option value="shanghai">Shanghai</option>
+      <option value="hongkong">Hong Kong</option>
+    </select>
+
+    <div class="group-toggle">
+      <button onclick="showView('standard')">Sorted by Distance</button>
+      <button onclick="showView('grouped')">Grouped by Activity</button>
+      <button onclick="showView('distanceGroups')">Grouped by Distance</button>
+    </div>
+
+    <div class="guide" id="guideContainer"></div>
+  </main>
+  <script>
+    const recommendations = {
+      seoul: {
+        hotel: "Westin Josun Seoul (City Hall)",
+        places: [
+          { name: "Myeongdong Shopping Street", category: "Shop", distance: 0.8, travelTime: 8, walk: "8 mins", metro: null, description: "A bustling area for K-beauty, food, and fashion.", cluster: "Myeongdong" },
+          { name: "Lotte Department Store (Myeongdong)", category: "Shop", distance: 0.9, travelTime: 9, walk: "9 mins", metro: null, description: "Major department store with beauty, fashion, and a great food hall.", cluster: "Myeongdong" },
+          { name: "Olive Young (Myeongdong)", category: "Shop", distance: 0.8, travelTime: 8, walk: "8 mins", metro: null, description: "Top health and beauty chain for K-beauty products and sheet masks.", cluster: "Myeongdong" },
+          { name: "Myeongdong Kyoja", category: "Eat", distance: 0.9, travelTime: 9, walk: "9 mins", metro: null, description: "Popular spot for knife-cut noodles (kalguksu) and dumplings (mandu).", cluster: "Myeongdong" },
+          { name: "Softree", category: "Eat", distance: 0.8, travelTime: 8, walk: "8 mins", metro: null, description: "Famous milk soft serve topped with honeycomb.", cluster: "Myeongdong" },
+          { name: "LINE/Kakao Friends Store (Myeongdong)", category: "Shop", distance: 0.8, travelTime: 8, walk: "8 mins", metro: null, description: "Gift shop with local character merchandise.", cluster: "Myeongdong" },
+          { name: "Nanta Show", category: "Entertainment", distance: 0.9, travelTime: 9, walk: "9 mins", metro: null, description: "Non-verbal comedy performance with drumming and kitchen percussion.", cluster: "Myeongdong" },
+          { name: "Insadong Street", category: "See", distance: 1.5, travelTime: 15, walk: null, metro: "From City Hall Station, take Line 1 East-bound to Jonggak Station", description: "Cultural hub with traditional teahouses and art galleries.", cluster: "Gyeongbokgung/Bukchon" },
+          { name: "Gyeongbokgung Palace", category: "See", distance: 1.5, travelTime: 15, walk: null, metro: "From City Hall Station, take Line 3 North-bound to Gyeongbokgung Station", description: "Main royal palace with guard ceremony and hanbok rental.", cluster: "Gyeongbokgung/Bukchon" },
+          { name: "Tosokchon Samgyetang", category: "Eat", distance: 1.8, travelTime: 18, walk: null, metro: "From City Hall Station, take Line 3 North-bound to Gyeongbokgung Station", description: "Famous for rich ginseng chicken soup.", cluster: "Gyeongbokgung/Bukchon" },
+          { name: "Bukchon Hanok Village", category: "See", distance: 2.0, travelTime: 20, walk: null, metro: "From City Hall Station, take Line 3 North-bound to Anguk Station", description: "Neighborhood of preserved traditional Korean homes.", cluster: "Gyeongbokgung/Bukchon" },
+          { name: "Royal Guard Ceremony", category: "Entertainment", distance: 1.5, travelTime: 15, walk: null, metro: "From City Hall Station, take Line 3 North-bound to Gyeongbokgung Station", description: "Historic reenactment at Gyeongbokgung Palace.", cluster: "Gyeongbokgung/Bukchon" },
+          { name: "Gwangjang Market", category: "Eat", distance: 2.5, travelTime: 18, walk: null, metro: "From City Hall Station, take Line 1 East-bound to Jongno 5-ga Station", description: "Bustling market with street food like bindaetteok and gimbap.", cluster: "Dongdaemun" },
+          { name: "Dongdaemun Design Plaza (DDP)", category: "See", distance: 3.5, travelTime: 22, walk: null, metro: "From City Hall Station, take Line 4 East-bound to Dongdaemun History & Culture Park Station", description: "Futuristic landmark designed by Zaha Hadid.", cluster: "Dongdaemun" },
+          { name: "Doota Mall", category: "Shop", distance: 3.5, travelTime: 22, walk: null, metro: "From City Hall Station, take Line 4 East-bound to Dongdaemun Station", description: "Popular mall for trendy Korean fashion.", cluster: "Dongdaemun" },
+          { name: "K-Pop Hologram Concert at K-Live", category: "Entertainment", distance: 3.5, travelTime: 22, walk: null, metro: "From City Hall Station, take Line 4 East-bound to Dongdaemun Station", description: "Immersive virtual K-pop performances in Lotte FITIN.", cluster: "Dongdaemun" },
+          { name: "Maple Tree House", category: "Eat", distance: 2.5, travelTime: 18, walk: null, metro: "From City Hall Station, take Line 2 East-bound to Euljiro 3-ga Station", description: "Classic Korean BBQ experience.", cluster: "Euljiro" },
+          { name: "N Seoul Tower", category: "See", distance: 3.0, travelTime: 25, walk: null, metro: "From City Hall Station, take Line 4 South-bound to Myeong-dong Station, then cable car", description: "Panoramic city views via cable car.", cluster: "Namsan" },
+          { name: "Han River Cruise", category: "Do", distance: 4.0, travelTime: 25, walk: null, metro: "From City Hall Station, take Line 5 East-bound to Yeouido Station", description: "Relaxing boat ride with stunning skyline views.", cluster: "Yeouido" },
+          { name: "Hongdae Street Food", category: "Eat", distance: 5.0, travelTime: 30, walk: null, metro: "From City Hall Station, take Line 2 West-bound to Hongik University Station", description: "Vibrant area with unique street food like tteokbokki.", cluster: "Hongdae" },
+          { name: "Common Ground", category: "Shop", distance: 7.0, travelTime: 35, walk: null, metro: "From City Hall Station, take Line 2 East-bound to Konkuk University Station", description: "Trendy pop-up container mall for fashion and accessories.", cluster: "Konkuk" },
+          { name: "Starfield COEX Mall", category: "Shop", distance: 8.0, travelTime: 40, walk: null, metro: "From City Hall Station, take Line 2 East-bound to Samseong Station", description: "Massive underground mall with Starfield Library.", cluster: "Gangnam" },
+          { name: "Techno Mart", category: "Shop", distance: 9.0, travelTime: 45, walk: null, metro: "From City Hall Station, take Line 2 South-west-bound to Sindorim Station", description: "Wide selection of affordable tech gadgets.", cluster: "Sindorim" },
+          { name: "Yongsan Electronics Market", category: "Shop", distance: 5.0, travelTime: 30, walk: null, metro: "From City Hall Station, take Line 1 South-bound to Yongsan Station", description: "Large market for tech gadgets and accessories.", cluster: "Yongsan" },
+          { name: "National Gugak Center", category: "Entertainment", distance: 10.0, travelTime: 50, walk: null, metro: "From City Hall Station, take Line 2 South-bound to Gangnam Station", description: "Performances of traditional Korean music and dance.", cluster: "Gangnam" }
+        ]
+      },
+      shanghai: {
+        hotel: "The Ritz-Carlton Shanghai, Pudong (Lujiazui)",
+        places: [
+          { name: "The Bund", category: "See", distance: 0.5, travelTime: 5, walk: "5 mins", metro: null, description: "Iconic waterfront with colonial architecture and skyline views.", cluster: "Lujiazui" },
+          { name: "IFC Mall", category: "Shop", distance: 0.6, travelTime: 6, walk: "6 mins", metro: null, description: "Luxury mall with upscale brands and Pudong skyline views.", cluster: "Lujiazui" },
+          { name: "Super Brand Mall", category: "Shop", distance: 0.7, travelTime: 7, walk: "7 mins", metro: null, description: "Family-friendly mega-mall with stores and entertainment.", cluster: "Lujiazui" },
+          { name: "Shanghai Tower", category: "See", distance: 0.8, travelTime: 8, walk: "8 mins", metro: null, description: "Observation deck with sky-high views from China's tallest building.", cluster: "Lujiazui" },
+          { name: "Din Tai Fung", category: "Eat", distance: 0.7, travelTime: 7, walk: "7 mins", metro: null, description: "High-quality xiaolongbao and Taiwanese-style dishes.", cluster: "Lujiazui" },
+          { name: "Hai Di Lao", category: "Eat", distance: 0.7, travelTime: 7, walk: "7 mins", metro: null, description: "Popular hot pot with tech-enabled ordering and DIY sauce bars.", cluster: "Lujiazui" },
+          { name: "Yang’s Dumpling", category: "Eat", distance: 3.0, travelTime: 20, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to East Nanjing Rd Station", description: "Famous for crispy shengjianbao (pan-fried dumplings).", cluster: "Nanjing Road" },
+          { name: "Nanjing Road", category: "Shop", distance: 2.5, travelTime: 18, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to East Nanjing Rd Station", description: "Lively historic shopping street for people-watching.", cluster: "Nanjing Road" },
+          { name: "Jia Jia Tang Bao", category: "Eat", distance: 3.5, travelTime: 22, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 1 North-bound to Xinzha Rd Station", description: "Rustic favorite for authentic soup dumplings (xiaolongbao).", cluster: "Nanjing Road" },
+          { name: "AP Xinyang Fashion & Gifts Market", category: "Shop", distance: 3.5, travelTime: 22, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station", description: "Underground market for affordable local crafts and souvenirs.", cluster: "Nanjing Road" },
+          { name: "Yuyuan Bazaar", category: "Eat", distance: 4.0, travelTime: 25, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 10 West-bound to Yuyuan Garden Station", description: "Street food like shengjianbao and crab shell pastries.", cluster: "Yuyuan" },
+          { name: "Yu Garden", category: "See", distance: 4.0, travelTime: 25, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 10 West-bound to Yuyuan Garden Station", description: "Classical Chinese gardens with traditional shops.", cluster: "Yuyuan" },
+          { name: "Kunqu Opera", category: "Entertainment", distance: 4.0, travelTime: 25, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 10 West-bound to Yuyuan Garden Station", description: "Historic Chinese opera at Yuyuan Bazaar.", cluster: "Yuyuan" },
+          { name: "Tianzifang", category: "Shop", distance: 5.0, travelTime: 30, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 9 South-bound to Dapuqiao Station", description: "Charming lanes with indie shops and cafés.", cluster: "Xintiandi/Tianzifang" },
+          { name: "Xintiandi", category: "Shop", distance: 4.5, travelTime: 28, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 1 South-bound to South Huangpi Rd Station", description: "Historic lanes with art galleries and boutiques.", cluster: "Xintiandi/Tianzifang" },
+          { name: "Old Jesse", category: "Eat", distance: 5.0, travelTime: 30, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 9 South-bound to Dapuqiao Station", description: "Classic Shanghainese cuisine with red-braised pork.", cluster: "Xintiandi/Tianzifang" },
+          { name: "South Bund Fabric Market", category: "Shop", distance: 4.5, travelTime: 28, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to Lujiabang Rd Station, then Line 4 South-bound to Nanpu Bridge Station", description: "Custom silk and cashmere scarves and tailoring.", cluster: "South Bund" },
+          { name: "M50 Art District", category: "Do", distance: 7.0, travelTime: 35, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to Zhongshan Park Station, then Line 13 East-bound to Jiangning Rd Station", description: "Creative hub with contemporary art galleries and street art.", cluster: "M50" },
+          { name: "IAPM Mall", category: "Shop", distance: 6.0, travelTime: 32, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 1 South-bound to Shanxi South Rd Station", description: "Trendy modern mall open late.", cluster: "Huaihai Road" },
+          { name: "Tianshan Tea City", category: "Shop", distance: 10.0, travelTime: 40, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to Loushanguan Rd Station", description: "High-quality teas like Longjing and Pu'er.", cluster: "Hongqiao" },
+          { name: "ERA Acrobats", category: "Entertainment", distance: 8.0, travelTime: 35, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 1 North-bound to Shanghai Circus World Station", description: "Spectacular acrobatic show with multimedia elements.", cluster: "Circus World" },
+          { name: "Acrobatic School Showcase", category: "Entertainment", distance: 8.0, travelTime: 35, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to People's Square Station, then Line 1 North-bound to Shanghai Circus World Station", description: "Thrilling stunts from up-and-coming acrobats.", cluster: "Circus World" },
+          { name: "Shanghai Disneyland", category: "Entertainment", distance: 20.0, travelTime: 50, walk: null, metro: "From Lujiazui Station, take Line 2 East-bound to Longyang Rd Station, then Line 11 South-bound to Disney Station", description: "Theme park with unique China-exclusive attractions.", cluster: "Disneyland" },
+          { name: "Zhujiajiao Water Town", category: "See", distance: 40.0, travelTime: 80, walk: null, metro: "From Lujiazui Station, take Line 2 West-bound to Hongqiao Railway Station, then Line 17 North-bound to Zhujiajiao Station", description: "Picturesque ancient water town with canals and bridges.", cluster: "Zhujiajiao" }
+        ]
+      },
+      hongkong: {
+        hotel: "Grand Hyatt Hong Kong (Wan Chai)",
+        places: [
+          { name: "Sogo Department Store", category: "Shop", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line East-bound to Causeway Bay Station", description: "Japanese department store with HK fashion.", cluster: "Causeway Bay" },
+          { name: "Kam's Roast Goose", category: "Eat", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line East-bound to Causeway Bay Station", description: "Iconic roast goose rice.", cluster: "Causeway Bay" },
+          { name: "Mammy Pancake", category: "Eat", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line East-bound to Causeway Bay Station", description: "Crispy and fluffy egg waffles (gai daan zai).", cluster: "Causeway Bay" },
+          { name: "G.O.D. (Goods of Desire)", category: "Shop", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line East-bound to Causeway Bay Station", description: "Modern Hong Kong-themed gifts and decor.", cluster: "Causeway Bay" },
+          { name: "Lan Fong Yuen", category: "Eat", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station", description: "Iconic cha chaan teng for milk tea and crispy buns.", cluster: "Central" },
+          { name: "Mak's Noodle", category: "Eat", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station", description: "Traditional wonton noodles.", cluster: "Central" },
+          { name: "Landmark", category: "Shop", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station", description: "Luxury mall with elegant design.", cluster: "Central" },
+          { name: "Hong Kong Observation Wheel", category: "Entertainment", distance: 1.5, travelTime: 12, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station", description: "Ferris wheel with panoramic Victoria Harbour views.", cluster: "Central" },
+          { name: "K11 Musea", category: "Shop", distance: 2.0, travelTime: 15, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Tsim Sha Tsui Station", description: "Art-meets-retail mall and museum.", cluster: "Tsim Sha Tsui" },
+          { name: "Star Ferry", category: "Do", distance: 2.0, travelTime: 15, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Tsim Sha Tsui Station", description: "Cheap and scenic way to cross Victoria Harbour.", cluster: "Tsim Sha Tsui" },
+          { name: "Symphony of Lights", category: "Entertainment", distance: 2.0, travelTime: 15, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Tsim Sha Tsui Station", description: "Nightly harbor light show with soundtrack on FM/app.", cluster: "Tsim Sha Tsui" },
+          { name: "Harbour City", category: "Shop", distance: 2.0, travelTime: 15, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Tsim Sha Tsui Station", description: "Massive mall with over 450 stores.", cluster: "Tsim Sha Tsui" },
+          { name: "PMQ (Police Married Quarters)", category: "Shop", distance: 2.0, travelTime: 15, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Sheung Wan Station", description: "Creative hub with local designer shops and artisanal goods.", cluster: "Sheung Wan" },
+          { name: "Temple Street Night Market", category: "Shop/Eat", distance: 3.0, travelTime: 18, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Jordan Station", description: "Night market for local goods and street snacks.", cluster: "Jordan/Yau Ma Tei" },
+          { name: "Australia Dairy Company", category: "Eat", distance: 3.0, travelTime: 18, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Jordan Station", description: "Classic HK diner with scrambled eggs and toast.", cluster: "Jordan/Yau Ma Tei" },
+          { name: "Jade Market", category: "Shop", distance: 3.0, travelTime: 18, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Yau Ma Tei Station", description: "Unique jade and gold jewelry.", cluster: "Jordan/Yau Ma Tei" },
+          { name: "Tim Ho Wan", category: "Eat", distance: 5.0, travelTime: 25, walk: null, metro: "From Wan Chai Station, take Tsuen Wan Line West-bound to Sham Shui Po Station", description: "Michelin-star dim sum, affordable and delicious.", cluster: "Sham Shui Po" },
+          { name: "Victoria Peak", category: "See", distance: 5.0, travelTime: 30, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station, then Peak Tram", description: "Panoramic views via the Peak Tram.", cluster: "Victoria Peak" },
+          { name: "Dragon’s Back Hike", category: "Do", distance: 10.0, travelTime: 40, walk: null, metro: "From Wan Chai Station, take Island Line East-bound to Shau Kei Wan Station, then bus to Dragon’s Back trailhead", description: "Scenic trail with stunning coastal views.", cluster: "Shau Kei Wan" },
+          { name: "Big Buddha (Tian Tan Buddha)", category: "See", distance: 30.0, travelTime: 70, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station, then Tung Chung Line to Tung Chung Station, then Ngong Ping 360 cable car", description: "Giant seated Buddha with scenic cable car ride.", cluster: "Lantau Island" },
+          { name: "Citygate Outlets", category: "Shop", distance: 25.0, travelTime: 60, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station, then Tung Chung Line to Tung Chung Station", description: "Discounted designer goods near the airport.", cluster: "Lantau Island" },
+          { name: "Tai O Fishing Village", category: "See", distance: 30.0, travelTime: 75, walk: null, metro: "From Wan Chai Station, take Island Line West-bound to Central Station, then Tung Chung Line to Tung Chung Station, then bus to Tai O", description: "Charming village with stilt houses and traditional life.", cluster: "Lantau Island" }
+        ]
+      }
+    };
+
+    let currentCity = "";
+
+    function generateStandardView(city) {
+      const places = recommendations[city].places.sort((a, b) => a.distance - b.distance);
+      let html = `<h2>${city.charAt(0).toUpperCase() + city.slice(1)} - Sorted by Distance</h2><ul>`;
+      places.forEach(place => {
+        html += `<li><strong>${place.name} (${place.category})</strong><br>`;
+        html += `Distance: ${place.distance} km<br>`;
+        html += `Time: ${place.travelTime} mins<br>`;
+        html += place.walk ? `Walk: ${place.walk}<br>` : `Metro: ${place.metro}<br>`;
+        html += `${place.description}</li>`;
+      });
+      html += `</ul>`;
+      return html;
+    }
+
+    function generateGroupedView(city) {
+      const categories = ["See", "Do", "Eat", "Shop", "Entertainment"];
+      let html = `<h2>${city.charAt(0).toUpperCase() + city.slice(1)} - Grouped by Activity</h2>`;
+      categories.forEach(category => {
+        const places = recommendations[city].places.filter(p => p.category.includes(category));
+        if (places.length > 0) {
+          html += `<section><h3>${category}</h3><ul>`;
+          places.forEach(place => {
+            html += `<li><strong>${place.name} (${place.distance} km, ${place.travelTime} mins):</strong> ${place.description}</li>`;
+          });
+          html += `</ul></section>`;
+        }
+      });
+      return html;
+    }
+
+    function generateDistanceGroupsView(city) {
+      const clusters = {};
+      recommendations[city].places.forEach(place => {
+        if (!clusters[place.cluster]) {
+          clusters[place.cluster] = [];
+        }
+        clusters[place.cluster].push(place);
+      });
+
+      let html = `<h2>${city.charAt(0).toUpperCase() + city.slice(1)} - Grouped by Distance</h2>`;
+      for (const clusterName in clusters) {
+        const places = clusters[clusterName].sort((a, b) => a.name.localeCompare(b.name));
+        const centralPlace = places[0]; // Use first place for directions
+        const direction = centralPlace.walk ? `Walk: ${centralPlace.walk}` : `Metro: ${centralPlace.metro}`;
+        html += `<section><h3>${clusterName} Cluster</h3>`;
+        html += `<p><strong>Directions from ${recommendations[city].hotel}:</strong> ${direction}</p>`;
+        html += `<ul>`;
+        places.forEach(place => {
+          html += `<li><strong>${place.name} (${place.category}, ${place.distance} km, ${place.travelTime} mins):</strong> ${place.description}</li>`;
+        });
+        html += `</ul></section>`;
+      }
+      return html;
+    }
+
+    function showView(viewType) {
+      if (!currentCity || !recommendations[currentCity]) {
+        document.getElementById("guideContainer").innerHTML = "<p>Please select a city to view its guide.</p>";
+        return;
+      }
+      let guide;
+      if (viewType === "standard") {
+        guide = generateStandardView(currentCity);
+      } else if (viewType === "grouped") {
+        guide = generateGroupedView(currentCity);
+      } else if (viewType === "distanceGroups") {
+        guide = generateDistanceGroupsView(currentCity);
+      }
+      document.getElementById("guideContainer").innerHTML = guide;
+    }
+
+    document.getElementById("cityPicker").addEventListener("change", function () {
+      currentCity = this.value;
+      showView("standard");
+    });
+  </script>
+</body>
+</html>
